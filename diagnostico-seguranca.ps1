@@ -26,6 +26,22 @@ function SUSPEITO($msg) {
     $riscos.Add($msg)
 }
 
+function Get-VelocidadeMbps($linkSpeed) {
+    if ($linkSpeed -is [string]) {
+        if ($linkSpeed -match "([\d\.]+)\s*(G|M|K)?bps") {
+            $valor = [double]$Matches[1]
+            return switch ($Matches[2]) {
+                "G" { [math]::Round($valor * 1000, 0) }
+                "M" { [math]::Round($valor, 0) }
+                "K" { [math]::Round($valor / 1000, 1) }
+                default { [math]::Round($valor / 1000000, 0) }
+            }
+        }
+        return $linkSpeed
+    }
+    return [math]::Round($linkSpeed / 1000000, 0)
+}
+
 # ----------------------------------------------------------
 # 1. ADAPTADORES DE REDE — FOCO EM VIRTUAIS E LOOPBACK
 # ----------------------------------------------------------

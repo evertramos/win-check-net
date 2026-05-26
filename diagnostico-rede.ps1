@@ -27,6 +27,23 @@ function Get-Latencia($resultados) {
     return $resultados.ResponseTime
 }
 
+function Get-VelocidadeMbps($linkSpeed) {
+    # LinkSpeed pode ser string ("1.2 Gbps") ou uint64 em bits/s dependendo da versão do Windows
+    if ($linkSpeed -is [string]) {
+        if ($linkSpeed -match "([\d\.]+)\s*(G|M|K)?bps") {
+            $valor = [double]$Matches[1]
+            return switch ($Matches[2]) {
+                "G" { [math]::Round($valor * 1000, 0) }
+                "M" { [math]::Round($valor, 0) }
+                "K" { [math]::Round($valor / 1000, 1) }
+                default { [math]::Round($valor / 1000000, 0) }
+            }
+        }
+        return $linkSpeed
+    }
+    return [math]::Round($linkSpeed / 1000000, 0)
+}
+
 # ----------------------------------------------------------
 # 1. CONFIGURAÇÕES DE IP E ADAPTADORES
 # ----------------------------------------------------------
@@ -42,7 +59,7 @@ if ($adaptadores.Count -eq 0) {
         INFO "  Status    : $($ad.Status)"
         INFO "  MAC       : $($ad.MacAddress)"
 
-        $mbps = [math]::Round($ad.LinkSpeed / 1000000, 0)
+        $mbps = Get-VelocidadeMbps $ad.LinkSpeed
         INFO "  Velocidade: ${mbps} Mbps"
 
         $ip = Get-NetIPAddress -InterfaceIndex $ad.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
